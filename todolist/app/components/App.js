@@ -73,6 +73,7 @@ class App extends Component {
 
   handleUpdateText(key, text) {
     const newItems = this.state.items.map((item) => {
+      //console.log('handleUpdateText', item);
       if (item.key !== key) return item;
       return {
         ...item,
@@ -84,6 +85,12 @@ class App extends Component {
 
   handleToggleEditing(key, editing) {
     const newItems = this.state.items.map((item) => {
+      //console.log('handleToggleEditing', item);
+
+      //item looks like this if it's not the one being edited: {key: 1488949759882, text: "Email Natalie form that Jed gave you", complete: false, editing: false}
+      
+      // item looks like this if it is the one being edited: {key: 1488949766192, text: "Email Veronica form that Jed gave you! Sup!", complete: false, editing: true}
+
       if (item.key !== key) return item;
       return {
         ...item,
