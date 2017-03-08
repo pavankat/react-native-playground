@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, Image, TouchableHighlight } from 'react-native';
+import Profile from './Profile';
+import Repositories from './Repositories';
+import Notes from './Notes';
+import api from '../utils/api';
 
 const styles= StyleSheet.create({
 	container: {
@@ -18,7 +22,7 @@ const styles= StyleSheet.create({
 
 //shows you if the object passed down from the parent ok:
 	// <Text> {JSON.stringify(this.props.userInfo)} </Text>
-export default class Dashboard extends React.Component{
+export default class Dashboard extends Component{
 	//this seems completely stupid, but it might be the only way we can share styles
 	makeBackground(btn){
 		var obj = {
@@ -39,15 +43,44 @@ export default class Dashboard extends React.Component{
 	}
 
 	goToProfile(){
-		console.log('Going to Profile Page');
+		//when this function runs -> send the user to the profile component
+		this.props.navigator.push({
+		    component: Profile,
+		    title: 'Profile Page',
+		    passProps: {userInfo: this.props.userInfo}
+		})
 	}
 
 	goToRepos(){
-		console.log('Going to Repos');
+		//get the repos from the api we made from the api.js file 
+		//then pass the userInfo and the repos to the Repositories component
+		api.getRepos(this.props.userInfo.login)
+		    .then((res) => {
+		        this.props.navigator.push({
+		            component: Repositories,
+		            title: 'Repos Page',
+		            passProps: {
+		                userInfo: this.props.userInfo,
+		                repos: res
+		            }
+		        });
+		    });
 	}
 	
 	goToNotes(){
-		console.log('Going to Notes');
+		api.getNotes(this.props.userInfo.login)
+		  .then((jsonRes) => {
+		    jsonRes = jsonRes || {}; //when jsonRes the argument comes in as undefined, it'll set jsonRes to {}
+
+		    this.props.navigator.push({
+		      component: Notes,
+		      title: 'Notes',
+		      passProps: {
+		        notes: jsonRes,
+		        userInfo: this.props.userInfo
+		      }
+		    });
+		  });
 	}
 
     render() {
