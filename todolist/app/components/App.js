@@ -1,8 +1,17 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Platform, ListView, Keyboard } from "react-native";
+
+//ActivityIndicator is for loading
+//AsyncStorage is like local storage to store items
+//Keyboard is to hide the keyboard when scrolling
+//Platform is to give padding top 30 to iphones
+//ListView is to show data from a data source (kind of like paginated ajax query that is triggered on scroll)
+//View is like a div
+//Text is like a paragraph tag
+import { View, Text, ActivityIndicator, StyleSheet, Platform, ListView, Keyboard, AsyncStorage } from "react-native";
 import Header from "./Header";
 import Footer from "./Footer";
 import Row from "./Row";
+//var Row = require('./Row')
 
 const filterItems = (filter, items) => {
   console.log(filter);
@@ -18,6 +27,7 @@ class App extends Component {
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
+      loading: true,
       allComplete: false,
       filter: "ALL",
       value: "",
@@ -30,6 +40,30 @@ class App extends Component {
     this.handleToggleComplete = this.handleToggleComplete.bind(this);
     this.handleRemoveItem = this.handleRemoveItem.bind(this);
     this.handleFilter = this.handleFilter.bind(this);
+    this.handleClearComplete = this.handleClearComplete.bind(this);
+  }
+
+  //componentWillMount is called before the render method is executed. setting the state in this phase will not trigger a re-rendering.
+  //basically we're loading the items from AsyncStorage before we show the items on the screen
+  componentWillMount() {
+    /*
+    //see loading in action (the test data is too little in AsyncStorage to see it)
+      //if you don't use => then this inside setTimeout will be the window
+      setTimeout(() => {
+        this.setState({loading: false})
+      }, 2000)
+    */
+
+    AsyncStorage.getItem("items").then((json) => {
+      try {
+        const items = JSON.parse(json);
+
+        //set loading to false after items get loaded from AsyncStorage
+        this.setSource(items, items, { loading: false}); 
+      } catch(e) {
+        console.log(e)
+      }
+    })
   }
 
   //drying up the code
@@ -39,6 +73,8 @@ class App extends Component {
       dataSource: this.state.dataSource.cloneWithRows(itemsDatasource),
       ...otherState //this means it'll take all of the properties : values in the otherState argument and throw them in here
     })
+
+    AsyncStorage.setItem("items", JSON.stringify(items));
   }
 
   handleFilter(filter){
@@ -47,6 +83,11 @@ class App extends Component {
     this.state.filter = filter; //had to add this here
     //------CHECK THE CODE ON GITHUB
 
+  }
+
+  handleClearComplete() {
+    const newItems = filterItems("ACTIVE", this.state.items);
+    this.setSource(newItems, filterItems(this.state.filter, newItems));
   }
 
   handleRemoveItem(key){
@@ -134,7 +175,15 @@ class App extends Component {
           count={filterItems("ACTIVE", this.state.items).length}
           onFilter={this.handleFilter}
           filter={this.state.filter}
+          onClearComplete={this.handleClearComplete}
         />
+
+        {this.state.loading && <View style={styles.loading}>
+          <ActivityIndicator
+            animating
+            size="large"
+          />
+        </View>}
       </View>
     );
   }
@@ -147,6 +196,16 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: { paddingTop: 30 }
     })
+  },
+  loading: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,.2)"
   },
   content: {
     flex: 1
