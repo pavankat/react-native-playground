@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row"
 	},
 	filter: {
-		padding: 8,
+		padding: 4,
 		borderRadius: 5,
 		borderWidth: 1,
 		borderColor: "transparent"
